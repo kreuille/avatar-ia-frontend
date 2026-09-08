@@ -417,6 +417,12 @@ form.addEventListener('submit', async (e) => {
 
   setStatus('loading', '<span class="spinner"></span>Génération en cours (image, voix, animation)... cela peut prendre plusieurs minutes selon le modèle choisi, ne ferme pas cette page.');
 
+  const statusUrl = webhookUrl.replace(/\/([^\/]+)$/, '/$1-status');
+  const POLL_INTERVAL_MS = 6000;
+  const MAX_WAIT_MS = 8 * 60 * 1000;
+
+  function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+
   try {
     const res = await fetch(webhookUrl, {
       method: 'POST',
@@ -429,10 +435,32 @@ form.addEventListener('submit', async (e) => {
       throw new Error('Le serveur a répondu avec une erreur (' + res.status + '). ' + text.slice(0, 300));
     }
 
-    const data = await res.json();
+    const started = await res.json();
 
-    if (!data.success || !data.video_url) {
-      throw new Error('Réponse inattendue du workflow: ' + JSON.stringify(data).slice(0, 300));
+    if (!started.execution_id) {
+      throw new Error('Réponse inattendue du workflow: ' + JSON.stringify(started).slice(0, 300));
+    }
+
+    const deadline = Date.now() + MAX_WAIT_MS;
+    let data = null;
+
+    while (Date.now() < deadline) {
+      await sleep(POLL_INTERVAL_MS);
+      const pollRes = await fetch(statusUrl + '?id=' + encodeURIComponent(started.execution_id));
+      if (!pollRes.ok) continue;
+      const pollData = await pollRes.json().catch(() => null);
+      if (!pollData) continue;
+      if (pollData.status === 'done' && pollData.video_url) {
+        data = pollData;
+        break;
+      }
+      if (pollData.status === 'error') {
+        throw new Error(pollData.message || 'La génération a échoué côté serveur.');
+      }
+    }
+
+    if (!data) {
+      throw new Error('La génération prend plus de temps que prévu (> 8 minutes). Réessaie plus tard, ou vérifie les exécutions dans n8n.');
     }
 
     setStatus('success', 'Vidéo générée avec succès.');
@@ -443,7 +471,7 @@ form.addEventListener('submit', async (e) => {
     link.setAttribute('download', data.filename || 'avatar.mp4');
     resultEl.style.display = 'block';
   } catch (err) {
-    setStatus('error', 'Erreur: ' + err.message + '<br><br>Vérifie que le workflow n8n est actif, que l URL du webhook est correcte, et que le CORS est autorisé sur le nœud webhook.');
+    setStatus('error', 'Erreur: ' + err.message + '<br><br>Vérifie que le workflow n8n est actif, que l URL du webhook est correcte, et que le CORS est autorisé sur les nœuds webhook.');
   } finally {
     submitBtn.disabled = false;
   }
