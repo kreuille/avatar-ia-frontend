@@ -73,7 +73,59 @@
     border-color: var(--accent);
   }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .row.row3 { grid-template-columns: 1fr 1fr 1fr; }
   .row textarea, .row input, .row select { margin-bottom: 0; }
+
+  .toggle { display: flex; gap: 8px; margin-bottom: 10px; }
+  .toggle label {
+    flex: 1;
+    display: block;
+    margin: 0;
+    padding: 9px 10px;
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--muted);
+    background: #0f1218;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle input { display: none; }
+  .toggle input:checked + label {
+    color: white;
+    border-color: var(--accent);
+    background: linear-gradient(90deg, rgba(124,92,255,.25), rgba(255,92,138,.25));
+  }
+
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: -6px 0 18px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .check-row input { width: 16px; height: 16px; margin: 0; }
+
+  input[type=file] {
+    width: 100%;
+    background: #0f1218;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    border-radius: 10px;
+    padding: 11px 12px;
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+  #photoPreview {
+    display: none;
+    max-width: 140px;
+    border-radius: 10px;
+    margin: -10px 0 18px;
+    border: 1px solid var(--border);
+  }
 
   button#submitBtn {
     width: 100%;
@@ -155,19 +207,56 @@
   </header>
 
   <form class="card" id="avatarForm">
-    <label for="avatar_description">Description de l avatar</label>
-    <div class="hint">Apparence physique, style, ambiance/décor. Ex: femme d une trentaine d années, cheveux roux bouclés, studio podcast, lumière chaude.</div>
-    <textarea id="avatar_description" required placeholder="Décris à quoi doit ressembler l avatar..."></textarea>
+    <label>Source de l avatar</label>
+    <div class="toggle">
+      <input type="radio" name="avatarSource" id="avatarSourceDesc" value="description" checked>
+      <label for="avatarSourceDesc">Décrire l avatar</label>
+      <input type="radio" name="avatarSource" id="avatarSourcePhoto" value="photo">
+      <label for="avatarSourcePhoto">Envoyer une photo</label>
+    </div>
 
-    <label for="video_concept">Concept de la vidéo</label>
-    <div class="hint">De quoi parle la vidéo, à qui elle s adresse, le message clé. Pas besoin d écrire le script mot pour mot, une IA s en charge.</div>
-    <textarea id="video_concept" required placeholder="Ex: astuces productivité pour freelances, ton direct et motivant..."></textarea>
+    <div id="avatarDescBlock">
+      <label for="avatar_description">Description de l avatar</label>
+      <div class="hint">Apparence physique, style, ambiance/décor. Ex: femme d une trentaine d années, cheveux roux bouclés, studio podcast, lumière chaude.</div>
+      <textarea id="avatar_description" placeholder="Décris à quoi doit ressembler l avatar..."></textarea>
+    </div>
+
+    <div id="avatarPhotoBlock" style="display:none;">
+      <label for="reference_photo">Photo de la personne</label>
+      <div class="hint">La photo est utilisée telle quelle comme avatar (aucune régénération IA du visage) pour garantir une ressemblance parfaite.</div>
+      <input type="file" id="reference_photo" accept="image/*">
+      <img id="photoPreview" alt="Aperçu">
+    </div>
+
+    <label>Script de la vidéo</label>
+    <div class="toggle">
+      <input type="radio" name="scriptSource" id="scriptSourceConcept" value="concept" checked>
+      <label for="scriptSourceConcept">Générer par IA à partir d un concept</label>
+      <input type="radio" name="scriptSource" id="scriptSourceCustom" value="custom">
+      <label for="scriptSourceCustom">J écris le texte moi-même</label>
+    </div>
+
+    <div id="videoConceptBlock">
+      <label for="video_concept">Concept de la vidéo</label>
+      <div class="hint">De quoi parle la vidéo, à qui elle s adresse, le message clé. Pas besoin d écrire le script mot pour mot, une IA s en charge.</div>
+      <textarea id="video_concept" placeholder="Ex: astuces productivité pour freelances, ton direct et motivant..."></textarea>
+    </div>
+
+    <div id="customScriptBlock" style="display:none;">
+      <label for="custom_script">Ton texte</label>
+      <div class="hint">Le texte exact que l avatar va dire, tel quel.</div>
+      <textarea id="custom_script" placeholder="Écris ici le script complet..."></textarea>
+      <div class="check-row">
+        <input type="checkbox" id="polish_punctuation" checked>
+        <label for="polish_punctuation">Améliorer la ponctuation/le ton par IA pour une intonation naturelle</label>
+      </div>
+    </div>
 
     <label for="voice_style">Style de voix</label>
     <div class="hint">Décris le ton souhaité, une voix sera choisie automatiquement en fonction.</div>
     <input type="text" id="voice_style" required placeholder="Ex: voix féminine dynamique et énergique">
 
-    <div class="row">
+    <div class="row row3">
       <div>
         <label for="langue">Langue du script</label>
         <select id="langue">
@@ -183,7 +272,16 @@
           <option value="16:9 (YouTube)">16:9 (YouTube)</option>
         </select>
       </div>
+      <div>
+        <label for="video_model">Modèle vidéo</label>
+        <select id="video_model">
+          <option value="falai">fal.ai (Infinitalk) — rapide, économique</option>
+          <option value="hedra">Hedra (Character-3) — rendu le plus réaliste</option>
+          <option value="heygen">HeyGen — bon réalisme, doublage</option>
+        </select>
+      </div>
     </div>
+    <div class="hint" id="modelHint" style="margin-top:-6px;">fal.ai : ~$0.20/seconde de vidéo, le moins cher.</div>
 
     <details>
       <summary>Réglages avancés (URL du webhook n8n)</summary>
@@ -217,6 +315,53 @@ const statusEl = document.getElementById('status');
 const resultEl = document.getElementById('result');
 const submitBtn = document.getElementById('submitBtn');
 
+const avatarDescBlock = document.getElementById('avatarDescBlock');
+const avatarPhotoBlock = document.getElementById('avatarPhotoBlock');
+const videoConceptBlock = document.getElementById('videoConceptBlock');
+const customScriptBlock = document.getElementById('customScriptBlock');
+const photoInput = document.getElementById('reference_photo');
+const photoPreview = document.getElementById('photoPreview');
+const modelSelect = document.getElementById('video_model');
+const modelHint = document.getElementById('modelHint');
+
+const MODEL_HINTS = {
+  falai: 'fal.ai : ~$0.20/seconde de vidéo, le moins cher.',
+  hedra: 'Hedra : rendu le plus réaliste, tarif plus élevé (~$2.88/min estimé).',
+  heygen: 'HeyGen : bon réalisme et doublage multilingue, tarif intermédiaire (~$1.93/min estimé).'
+};
+modelSelect.addEventListener('change', () => {
+  modelHint.textContent = MODEL_HINTS[modelSelect.value] || '';
+});
+
+document.querySelectorAll('input[name="avatarSource"]').forEach((radio) => {
+  radio.addEventListener('change', () => {
+    const usePhoto = document.getElementById('avatarSourcePhoto').checked;
+    avatarDescBlock.style.display = usePhoto ? 'none' : '';
+    avatarPhotoBlock.style.display = usePhoto ? '' : 'none';
+  });
+});
+
+document.querySelectorAll('input[name="scriptSource"]').forEach((radio) => {
+  radio.addEventListener('change', () => {
+    const useCustom = document.getElementById('scriptSourceCustom').checked;
+    videoConceptBlock.style.display = useCustom ? 'none' : '';
+    customScriptBlock.style.display = useCustom ? '' : 'none';
+  });
+});
+
+let referencePhotoDataUri = '';
+photoInput.addEventListener('change', () => {
+  const file = photoInput.files[0];
+  if (!file) { referencePhotoDataUri = ''; photoPreview.style.display = 'none'; return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    referencePhotoDataUri = reader.result;
+    photoPreview.src = referencePhotoDataUri;
+    photoPreview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
 function setStatus(kind, html) {
   statusEl.className = kind;
   statusEl.innerHTML = html;
@@ -225,14 +370,42 @@ function setStatus(kind, html) {
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   resultEl.style.display = 'none';
+
+  const usePhoto = document.getElementById('avatarSourcePhoto').checked;
+  const useCustomScript = document.getElementById('scriptSourceCustom').checked;
+  const avatarDescription = document.getElementById('avatar_description').value.trim();
+  const videoConcept = document.getElementById('video_concept').value.trim();
+  const customScript = document.getElementById('custom_script').value.trim();
+
+  if (usePhoto && !referencePhotoDataUri) {
+    setStatus('error', 'Choisis une photo avant de générer.');
+    return;
+  }
+  if (!usePhoto && !avatarDescription) {
+    setStatus('error', 'Décris l avatar avant de générer.');
+    return;
+  }
+  if (useCustomScript && !customScript) {
+    setStatus('error', 'Écris le texte de la vidéo avant de générer.');
+    return;
+  }
+  if (!useCustomScript && !videoConcept) {
+    setStatus('error', 'Décris le concept de la vidéo avant de générer.');
+    return;
+  }
+
   submitBtn.disabled = true;
 
   const payload = {
-    avatar_description: document.getElementById('avatar_description').value.trim(),
-    video_concept: document.getElementById('video_concept').value.trim(),
+    avatar_description: usePhoto ? '' : avatarDescription,
+    reference_photo: usePhoto ? referencePhotoDataUri : '',
+    video_concept: useCustomScript ? '' : videoConcept,
+    custom_script: useCustomScript ? customScript : '',
+    polish_punctuation: useCustomScript ? document.getElementById('polish_punctuation').checked : false,
     voice_style: document.getElementById('voice_style').value.trim(),
     langue: document.getElementById('langue').value,
-    format: document.getElementById('format').value
+    format: document.getElementById('format').value,
+    video_model: modelSelect.value
   };
   const webhookUrl = document.getElementById('webhookUrl').value.trim();
 
@@ -242,7 +415,7 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
-  setStatus('loading', '<span class="spinner"></span>Génération en cours (image, voix, animation)... cela peut prendre 1 à 4 minutes, ne ferme pas cette page.');
+  setStatus('loading', '<span class="spinner"></span>Génération en cours (image, voix, animation)... cela peut prendre plusieurs minutes selon le modèle choisi, ne ferme pas cette page.');
 
   try {
     const res = await fetch(webhookUrl, {
