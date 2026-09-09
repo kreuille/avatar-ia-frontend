@@ -279,6 +279,7 @@
           <option value="hedra">Hedra (Character-3) — rendu le plus réaliste</option>
           <option value="heygen">HeyGen — bon réalisme, doublage</option>
           <option value="omnihuman">OmniHuman — corps entier, gestes amples</option>
+          <option value="cinematic">Cinématique — se lève et change de pièce</option>
         </select>
       </div>
     </div>
@@ -329,7 +330,8 @@ const MODEL_HINTS = {
   falai: 'fal.ai : ~$0.20/seconde de vidéo, le moins cher.',
   hedra: 'Hedra : rendu le plus réaliste, tarif plus élevé (~$2.88/min estimé).',
   heygen: 'HeyGen : bon réalisme et doublage multilingue, tarif intermédiaire (~$1.93/min estimé).',
-  omnihuman: 'OmniHuman : synchro labiale + mouvements naturels du corps entier (même décor), ~$0.16/seconde.'
+  omnihuman: 'OmniHuman : synchro labiale + mouvements naturels du corps entier (même décor), ~$0.16/seconde.',
+  cinematic: 'Cinématique : le personnage se lève et se déplace dans une autre pièce avant de parler (2 plans montés), le plus long et le plus cher, ~10-15 min de génération.'
 };
 modelSelect.addEventListener('change', () => {
   modelHint.textContent = MODEL_HINTS[modelSelect.value] || '';
@@ -421,7 +423,7 @@ form.addEventListener('submit', async (e) => {
 
   const statusUrl = webhookUrl.replace(/\/([^\/]+)$/, '/$1-status');
   const POLL_INTERVAL_MS = 6000;
-  const MAX_WAIT_MS = 8 * 60 * 1000;
+  const MAX_WAIT_MS = 18 * 60 * 1000;
 
   function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
