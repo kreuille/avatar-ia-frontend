@@ -278,6 +278,7 @@
           <option value="falai">fal.ai (Infinitalk) — rapide, économique</option>
           <option value="hedra">Hedra (Character-3) — rendu le plus réaliste</option>
           <option value="heygen">HeyGen — bon réalisme, doublage</option>
+          <option value="omnihuman">OmniHuman — corps entier, gestes amples</option>
         </select>
       </div>
     </div>
@@ -327,7 +328,8 @@ const modelHint = document.getElementById('modelHint');
 const MODEL_HINTS = {
   falai: 'fal.ai : ~$0.20/seconde de vidéo, le moins cher.',
   hedra: 'Hedra : rendu le plus réaliste, tarif plus élevé (~$2.88/min estimé).',
-  heygen: 'HeyGen : bon réalisme et doublage multilingue, tarif intermédiaire (~$1.93/min estimé).'
+  heygen: 'HeyGen : bon réalisme et doublage multilingue, tarif intermédiaire (~$1.93/min estimé).',
+  omnihuman: 'OmniHuman : synchro labiale + mouvements naturels du corps entier (même décor), ~$0.16/seconde.'
 };
 modelSelect.addEventListener('change', () => {
   modelHint.textContent = MODEL_HINTS[modelSelect.value] || '';
