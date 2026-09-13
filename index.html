@@ -280,6 +280,7 @@
           <option value="heygen">HeyGen — bon réalisme, doublage</option>
           <option value="omnihuman">OmniHuman — corps entier, gestes amples</option>
           <option value="cinematic">Cinématique — se lève et change de pièce</option>
+          <option value="audio_only">Audio seul — pas de vidéo, juste la voix</option>
         </select>
       </div>
     </div>
@@ -331,7 +332,8 @@ const MODEL_HINTS = {
   hedra: 'Hedra : rendu le plus réaliste, tarif plus élevé (~$2.88/min estimé).',
   heygen: 'HeyGen : bon réalisme et doublage multilingue, tarif intermédiaire (~$1.93/min estimé).',
   omnihuman: 'OmniHuman : synchro labiale + mouvements naturels du corps entier (même décor), ~$0.16/seconde.',
-  cinematic: 'Cinématique : le personnage se lève et se déplace dans une autre pièce avant de parler (2 plans montés), le plus long et le plus cher, ~10-15 min de génération.'
+  cinematic: 'Cinématique : le personnage se lève et se déplace dans une autre pièce avant de parler (2 plans montés), le plus long et le plus cher, ~10-15 min de génération.',
+  audio_only: 'Audio seul : juste la voix (pas de vidéo), quasi gratuit et généré en quelques secondes.'
 };
 modelSelect.addEventListener('change', () => {
   modelHint.textContent = MODEL_HINTS[modelSelect.value] || '';
@@ -381,11 +383,13 @@ form.addEventListener('submit', async (e) => {
   const videoConcept = document.getElementById('video_concept').value.trim();
   const customScript = document.getElementById('custom_script').value.trim();
 
-  if (usePhoto && !referencePhotoDataUri) {
+  const audioOnly = modelSelect.value === 'audio_only';
+
+  if (!audioOnly && usePhoto && !referencePhotoDataUri) {
     setStatus('error', 'Choisis une photo avant de générer.');
     return;
   }
-  if (!usePhoto && !avatarDescription) {
+  if (!audioOnly && !usePhoto && !avatarDescription) {
     setStatus('error', 'Décris l avatar avant de générer.');
     return;
   }
@@ -467,12 +471,13 @@ form.addEventListener('submit', async (e) => {
       throw new Error('La génération prend plus de temps que prévu (> 8 minutes). Réessaie plus tard, ou vérifie les exécutions dans n8n.');
     }
 
-    setStatus('success', 'Vidéo générée avec succès.');
+    setStatus('success', audioOnly ? 'Audio généré avec succès.' : 'Vidéo générée avec succès.');
     document.getElementById('resultVideo').src = data.video_url;
     document.getElementById('resultScript').textContent = data.script || '';
     const link = document.getElementById('downloadLink');
     link.href = data.video_url;
-    link.setAttribute('download', data.filename || 'avatar.mp4');
+    link.textContent = audioOnly ? 'Télécharger le WAV' : 'Télécharger le MP4';
+    link.setAttribute('download', data.filename || (audioOnly ? 'avatar.wav' : 'avatar.mp4'));
     resultEl.style.display = 'block';
   } catch (err) {
     setStatus('error', 'Erreur: ' + err.message + '<br><br>Vérifie que le workflow n8n est actif, que l URL du webhook est correcte, et que le CORS est autorisé sur les nœuds webhook.');
